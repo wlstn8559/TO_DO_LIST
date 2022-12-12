@@ -20,9 +20,16 @@ button:active{
     border: 1px solid lightgray;
 }
 
+.task-position{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 5px;
+    border-bottom: 1px solid lightgray;
+}
+
 .task-tabs{
     display: flex;
-    border-bottom: 1px solid lightgray;
     position: relative;
 }
 
@@ -62,4 +69,9 @@ button:active{
 
 .task-tabs div{
     cursor: pointer;
+}
+
+.button-delete{
+    border-radius: 20px;
+    background-color: rgb(240, 182, 7);
 }

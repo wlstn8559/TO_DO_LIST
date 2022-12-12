@@ -13,18 +13,34 @@ let addButton = document.getElementById("add-button");
 
 let tabs = document.querySelectorAll(".task-tabs div");
 
+let underLine = document.getElementById("under-line");
+
+let deleteAllButton = document.getElementById("deleteAll-button");
+
+let allChoiceButton = document.getElementById("allChoice-button");
+//전체 리스트
+let list = [];
+
 //할일리스트 저장하는 배열
 let taskList = [];
 
-let mode = '';
+//필터 리스트 저장하는 배열
+let filterList = [];
+
+let mode = 'all';
 
 //추가버튼 이벤트 리스너
 addButton.addEventListener("click", addTask);
+
+deleteAllButton.addEventListener("click", allDelete);
+
+allChoiceButton.addEventListener("click", allChoice);
 
 for(let i=1; i<tabs.length; i++){
     tabs[i].addEventListener("click", function(event){filter(event)})
 }
 
+//할일 리스트 추가하기
 function addTask(){
     let task = {
         id: uniqueId(),
@@ -33,27 +49,46 @@ function addTask(){
     }
     taskList.push(task);
     console.log(taskList);
+    taskInput.value = "";
     render();
 }
 
+//할일 입력란에 커서가 있을때 엔터를 치면 추가됨
+taskInput.addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      addTask();
+    }
+  });
+
 //할일 리스트에 할일 추가하는 함수
 function render() {
+    list = [];
+    if(mode == "all"){
+        list = taskList;
+    }else if(mode == "ongoing"){
+        list = filterList;
+    }else{
+        list = filterList;
+    }
+
+
     let resultHTML = "";
-    for(let i=0; i<taskList.length; i++){
-        if(taskList[i].isComplete == true){
+    for(let i=0; i<list.length; i++){
+        if(list[i].isComplete == true){
             resultHTML += `<div class="task-true">
-            <div class="task-done">${taskList[i].taskContent}</div>
+            <div class="task-done">${list[i].taskContent}</div>
             <div>
-                <button onclick="toggleComplete('${taskList[i].id}')">Check</button>
-                <button onclick="deleteButton('${taskList[i].id}')">Delete</button>
+                <button onclick="toggleComplete('${list[i].id}')">Check</button>
+                <button onclick="deleteButton('${list[i].id}')">Delete</button>
             </div>
         </div>`;
         }else{
             resultHTML += `<div class="task-false">
-            <div>${taskList[i].taskContent}</div>
+            <div>${list[i].taskContent}</div>
             <div>
-                <button onclick="toggleComplete('${taskList[i].id}')">Check</button>
-                <button onclick="deleteButton('${taskList[i].id}')">Delete</button>
+                <button onclick="toggleComplete('${list[i].id}')">Check</button>
+                <button onclick="deleteButton('${list[i].id}')">Delete</button>
             </div>
         </div>`;
         }
@@ -88,48 +123,71 @@ var uniqueId = (function(){
     return function(){ return id++;}
 })();
 
+//삭제 버튼
 function deleteButton(id){
     console.log(id);
     for(let i=0; i<taskList.length; i++){
         if(taskList[i].id == id){
            //console.log(taskList.indexOf(taskList[i]));
-           taskList.splice(taskList.indexOf(taskList[i]), 1);
+           //taskList.splice(taskList.indexOf(taskList[i]), 1);
+           taskList.splice(i, 1);
+            break;
+        }
+    }
+    for(let i=0; i<filterList.length; i++){
+        if(filterList[i].id == id){
+           filterList.splice(i, 1);
             break;
         }
     }
     render();
 }
 
+//전체 삭제 버튼
+function allDelete(){
+    taskList = [];
+    filterList = [];
+    render();
+}
+
+//전체 선택 버튼
+function allChoice(){
+    for(let i=0; i<taskList.length; i++){
+
+        taskList[i].isComplete = !taskList[i].isComplete;
+     
+    }
+    
+    
+    render();
+}
+
+// 모두, 진행중, 끝남중 하나를 선택하면 filter로 걸러서 보여주기 위한 함수
 function filter(event){
+    underLine.style.left = event.currentTarget.offsetLeft + "px";
+    underLine.style.width = event.currentTarget.offsetWidth + "px";
+    underLine.style.top = 
+    event.currentTarget.offsetTop + event.currentTarget.offsetHeight + "px";
+
     mode = event.target.id;
 
     if(mode == "all"){
         render();
     }else if(mode == "ongoing"){
-        for(let i=0; i<taskList.length; i++){
-            if(taskList.isComplete == true){
-                resultHTML += `<div class="task-true">
-                <div class="task-done">${taskList[i].taskContent}</div>
-                <div>
-                    <button onclick="toggleComplete('${taskList[i].id}')">Check</button>
-                    <button onclick="deleteButton('${taskList[i].id}')">Delete</button>
-                </div>
-            </div>`;
+        filterList = [];
+        for(i=0; i<taskList.length; i++){
+            if(taskList[i].isComplete == false){
+                filterList.push(taskList[i]);
             }
         }
-        document.getElementById("task-board").innerHTML = resultHTML;
+        render();
     }else{
-        for(let i=0; i<taskList.length; i++){
-            if(taskList.isComplete == false){
-                resultHTML += `<div class="task-false">
-                <div>${taskList[i].taskContent}</div>
-                <div>
-                    <button onclick="toggleComplete('${taskList[i].id}')">Check</button>
-                    <button onclick="deleteButton('${taskList[i].id}')">Delete</button>
-                </div>
-            </div>`;
+        filterList = [];
+        for(i=0; i<taskList.length; i++){
+            if(taskList[i].isComplete == true){
+                filterList.push(taskList[i]);
             }
         }
-        document.getElementById("task-board").innerHTML = resultHTML;
+        render();
     }
 }
